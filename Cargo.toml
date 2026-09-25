@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/signex_asset",
+    "crates/signex_gameexe_macro",
+    "crates/signex_util",
+]

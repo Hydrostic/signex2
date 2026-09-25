@@ -1,0 +1,9 @@
+[package]
+name = "signex_asset"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+signex_gameexe_macro = { path = "../signex_gameexe_macro" }
+signex_util = { path = "../signex_util" }
+thiserror = "2"
