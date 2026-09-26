@@ -7,3 +7,4 @@ edition = "2024"
 signex_gameexe_macro = { path = "../signex_gameexe_macro" }
 signex_util = { path = "../signex_util" }
 thiserror = "2"
+toml = "1.1.6"
