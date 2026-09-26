@@ -1,6 +1,9 @@
 //! Binary `Gameexe.dat` decryption and parsing.
 
 use super::{GameexeError, GameexeNode, parse};
+use std::time::Instant;
+
+use tracing::trace;
 
 const HEADER_SIZE: usize = 8;
 
@@ -77,8 +80,23 @@ pub fn decrypt_and_parse_gameexe<T: GameexeNode>(
     bytes: &[u8],
     exe_el: Option<&[u8; 16]>,
 ) -> Result<T, GameexeDecodeError> {
+    let decode_started = Instant::now();
     let decoded = decode_gameexe(bytes, exe_el)?;
-    Ok(parse::<T>(&decoded.text)?)
+    trace!(
+        elapsed = ?decode_started.elapsed(),
+        input_bytes = bytes.len(),
+        decoded_text_bytes = decoded.text.len(),
+        "decrypt and decode Gameexe.dat"
+    );
+
+    let parse_started = Instant::now();
+    let parsed = parse::<T>(&decoded.text)?;
+    trace!(
+        elapsed = ?parse_started.elapsed(),
+        text_bytes = decoded.text.len(),
+        "parse Gameexe.ini"
+    );
+    Ok(parsed)
 }
 
 fn xor_cycle(bytes: &mut [u8], key: &[u8]) {
