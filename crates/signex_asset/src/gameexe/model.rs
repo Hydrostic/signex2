@@ -15,6 +15,7 @@ mod ui_strings;
 mod voice;
 mod waku;
 mod window;
+mod joypad;
 
 pub use button::*;
 pub use config::*;
@@ -28,6 +29,7 @@ pub use ui_strings::*;
 pub use voice::*;
 pub use waku::*;
 pub use window::*;
+pub use joypad::*;
 
 #[gameexe]
 #[derive(Debug)]
@@ -54,6 +56,9 @@ pub struct Gameexe {
     pub start_scene: SceneRef,
     #[gameexe(value, update, default = SceneRef::new("_menu"))]
     pub menu_scene: SceneRef,
+    // `x_menu_scene` is not used in old engine
+    #[gameexe(value, update, default = SceneRef::new(""))]
+    pub x_menu_scene: SceneRef,
     #[gameexe(value, update, default = SceneRef::new(""))]
     pub cancel_scene: SceneRef,
     #[gameexe(value, update, default = SceneRef::new(""))]
@@ -75,6 +80,7 @@ pub struct Gameexe {
     pub flick_scene: GArray<FlickScene>,
     #[gameexe(array(count = "CNT", default_count = 16, count_min = 0, count_max = 256))]
     pub icon: GArray<Icon>,
+    pub joypad: JoypadConfig,
     pub mouse_cursor: MouseCursorConfig,
     pub syscommenu: SyscomMenu,
     pub msgbk: MessageBack,
