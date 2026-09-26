@@ -53,6 +53,13 @@ impl GameexeValue for Chrkoe {
                 "expected character number list",
             ));
         };
+        if open == 0 || value[open - 1].token != Token::Comma {
+            return Err(GameexeError::new(
+                value.first().map_or(0..0, |token| token.span.clone()),
+                path,
+                "expected character number list",
+            ));
+        }
         if !matches!(value.last(), Some(token) if token.token == Token::RightParen)
             || open + 2 > value.len()
         {
@@ -62,7 +69,7 @@ impl GameexeValue for Chrkoe {
                 "invalid character number list",
             ));
         }
-        let parts = split_comma_separated(&value[..open], path)?;
+        let parts = split_comma_separated(&value[..open - 1], path)?;
         if !matches!(parts.len(), 3 | 5) {
             return Err(GameexeError::new(
                 value[open].span.clone(),
