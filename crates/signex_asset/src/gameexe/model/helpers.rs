@@ -72,7 +72,7 @@ pub(crate) fn one_to_three<'a>(
     }
 }
 
-pub (crate) fn checked_count(
+pub(crate) fn checked_count(
     value: &[SpannedToken<'_>],
     min: i32,
     max: i32,

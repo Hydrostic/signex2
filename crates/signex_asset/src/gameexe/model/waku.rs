@@ -1,6 +1,6 @@
 //! Message window frames, buttons, and face positions.
 
-use super::helpers::{OneToThree, one_to_three, checked_count};
+use super::helpers::{OneToThree, checked_count, one_to_three};
 use crate::gameexe::{
     GArray, GameexeError, GameexeNode, GameexeValue, Span, SpannedToken, Token, gameexe,
 };
