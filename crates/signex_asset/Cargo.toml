@@ -4,8 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+jpeg-decoder = { version = "0.3", default-features = false }
 signex_gameexe_macro = { path = "../signex_gameexe_macro" }
 signex_util = { path = "../signex_util" }
 thiserror = "2"
 toml = "1.1.6"
 tracing = "0.1"
+
+[dev-dependencies]
+jpeg-encoder = "0.6"
