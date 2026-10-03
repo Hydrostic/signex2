@@ -3,12 +3,35 @@ use super::keys::EASY_ANGOU;
 use super::model::{
     CommandTarget, SceneHeader, SceneId, SceneImage, ScenePack, ScenePackHeader, SceneProp,
 };
-use super::reader::{CheckedReader, checked_count, decode_utf16};
 use crate::lzss::{decode as decode_lzss, xor_cycle};
+use crate::reader::CheckedReader;
 
 pub const SCENE_PACK_HEADER_SIZE: usize = 92;
 pub const SCENE_HEADER_SIZE: usize = 132;
 pub const Z_LABEL_COUNT: usize = 1000;
+
+fn checked_count(value: i32, field: &'static str, offset: u64) -> Result<usize, DecodeError> {
+    usize::try_from(value).map_err(|_| DecodeError::InvalidValue {
+        field,
+        offset,
+        value: i64::from(value),
+    })
+}
+
+fn decode_utf16(bytes: &[u8], field: &'static str, offset: u64) -> Result<String, DecodeError> {
+    if !bytes.len().is_multiple_of(2) {
+        return Err(DecodeError::InvalidValue {
+            field,
+            offset,
+            value: bytes.len() as i64,
+        });
+    }
+    let units = bytes
+        .chunks_exact(2)
+        .map(|p| u16::from_le_bytes([p[0], p[1]]))
+        .collect::<Vec<_>>();
+    String::from_utf16(&units).map_err(|_| DecodeError::InvalidUtf16 { field, offset })
+}
 
 pub fn decode_scene(bytes: &[u8], exe_el: Option<&[u8; 16]>) -> Result<ScenePack, DecodeError> {
     let mut reader = CheckedReader::new(bytes);

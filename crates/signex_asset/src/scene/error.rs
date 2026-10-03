@@ -34,3 +34,24 @@ pub enum DecodeError {
     #[error("required decode key `{key}` is missing")]
     KeyMissing { key: &'static str },
 }
+
+impl From<crate::reader::ReadError> for DecodeError {
+    fn from(error: crate::reader::ReadError) -> Self {
+        match error {
+            crate::reader::ReadError::UnexpectedEof {
+                field,
+                offset,
+                needed,
+                remaining,
+            } => Self::UnexpectedEof {
+                field,
+                offset,
+                needed,
+                remaining,
+            },
+            crate::reader::ReadError::ArithmeticOverflow { field, offset } => {
+                Self::ArithmeticOverflow { field, offset }
+            }
+        }
+    }
+}
