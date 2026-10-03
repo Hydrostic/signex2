@@ -6,6 +6,7 @@ pub mod audio;
 pub mod g00;
 pub mod gameexe;
 mod lzss;
+pub mod omv;
 mod reader;
 pub mod scene;
 
@@ -14,3 +15,7 @@ pub use audio::{
     parse_nwa_header, parse_ovk,
 };
 pub use g00::{G00Chip, G00Cut, G00Error, G00Image, G00Kind, G00Rect, decode_g00};
+pub use omv::{
+    OMV_HEADER_SIZE, OMV_PACKET_SIZE, OMV_PAGE_SIZE, OmvContainer, OmvError, OmvHeader,
+    OmvTheoraType, parse_omv,
+};
