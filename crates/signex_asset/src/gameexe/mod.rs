@@ -7,9 +7,8 @@ pub mod model;
 mod parser;
 pub mod types;
 
-pub use decode::{
-    DecodedGameexe, GameexeDecodeError, LzssError, decode_gameexe, decrypt_and_parse_gameexe,
-};
+pub use crate::lzss::LzssError;
+pub use decode::{DecodedGameexe, GameexeDecodeError, decode_gameexe, decrypt_and_parse_gameexe};
 pub use lexer::Lexer;
 pub use parser::{GameexeError, GameexeNode, GameexeValue, parse};
 pub use signex_gameexe_macro::gameexe;

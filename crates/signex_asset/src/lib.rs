@@ -3,3 +3,5 @@
 extern crate self as signex_asset;
 
 pub mod gameexe;
+mod lzss;
+pub mod scene;
