@@ -38,6 +38,10 @@ impl<'a> CheckedReader<'a> {
         self.base + self.cursor as u64
     }
 
+    pub(crate) fn remaining(&self) -> usize {
+        self.bytes.len() - self.cursor
+    }
+
     pub(crate) fn rest(&self) -> &'a [u8] {
         &self.bytes[self.cursor..]
     }
