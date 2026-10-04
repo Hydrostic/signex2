@@ -1,7 +1,8 @@
 //! Binary `Gameexe.dat` decryption and parsing.
 
 use super::{GameexeError, GameexeNode, parse};
-use crate::lzss::{LzssError, decode as decode_lzss, xor_cycle};
+use crate::lzss::{LzssError, decode as decode_lzss};
+use crate::util::xor_cycle;
 use std::time::Instant;
 
 use tracing::trace;

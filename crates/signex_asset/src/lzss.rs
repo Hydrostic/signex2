@@ -12,10 +12,35 @@ pub enum LzssError {
     InvalidOutputSize { actual: u32, expected: usize },
 }
 
-pub(crate) fn xor_cycle(bytes: &mut [u8], key: &[u8]) {
-    for (index, byte) in bytes.iter_mut().enumerate() {
-        *byte ^= key[index % key.len()];
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum LzssEncodeError {
+    #[error("LZSS {field} exceeds the format size")]
+    SizeOverflow { field: &'static str },
+}
+
+/// Encode standard LZSS using literal tokens.
+pub(crate) fn encode(input: &[u8]) -> Result<Vec<u8>, LzssEncodeError> {
+    let output_size = u32::try_from(input.len()).map_err(|_| LzssEncodeError::SizeOverflow {
+        field: "output size",
+    })?;
+    let groups = input.len().div_ceil(8);
+    let archive_size = 8usize
+        .checked_add(input.len())
+        .and_then(|size| size.checked_add(groups))
+        .ok_or(LzssEncodeError::SizeOverflow {
+            field: "archive size",
+        })?;
+    let archive_size = u32::try_from(archive_size).map_err(|_| LzssEncodeError::SizeOverflow {
+        field: "archive size",
+    })?;
+    let mut output = Vec::with_capacity(archive_size as usize);
+    output.extend_from_slice(&archive_size.to_le_bytes());
+    output.extend_from_slice(&output_size.to_le_bytes());
+    for chunk in input.chunks(8) {
+        output.push(u8::MAX >> (8 - chunk.len()));
+        output.extend_from_slice(chunk);
     }
+    Ok(output)
 }
 
 pub fn decode(input: &[u8]) -> Result<Vec<u8>, LzssError> {

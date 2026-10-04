@@ -3,9 +3,9 @@ use super::model::{
     CommandTarget, SceneHeader, SceneId, SceneImage, ScenePack, ScenePackHeader, SceneProp,
 };
 use crate::DecodeError;
-use crate::lzss::{decode as decode_lzss, xor_cycle};
+use crate::lzss::decode as decode_lzss;
 use crate::reader::CheckedReader;
-use crate::util::{checked_count, checked_size, checked_target};
+use crate::util::{checked_count, checked_size, checked_target, xor_cycle};
 
 pub const SCENE_PACK_HEADER_SIZE: usize = 92;
 pub const SCENE_HEADER_SIZE: usize = 132;
