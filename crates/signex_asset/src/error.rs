@@ -1,3 +1,5 @@
+//! Shared errors for binary asset decoders.
+
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum DecodeError {
     #[error(
@@ -29,10 +31,14 @@ pub enum DecodeError {
     ArithmeticOverflow { field: &'static str, offset: u64 },
     #[error("invalid UTF-16 in `{field}` at byte {offset}")]
     InvalidUtf16 { field: &'static str, offset: u64 },
-    #[error("LZSS error: {0}")]
-    Lzss(#[from] crate::lzss::LzssError),
+    #[error("unsupported `{feature}` at byte {offset}")]
+    Unsupported { feature: &'static str, offset: u64 },
+    #[error("cannot allocate `{field}`")]
+    AllocationFailed { field: &'static str },
     #[error("required decode key `{key}` is missing")]
     KeyMissing { key: &'static str },
+    #[error("LZSS error: {0}")]
+    Lzss(#[from] crate::lzss::LzssError),
 }
 
 impl From<crate::reader::ReadError> for DecodeError {

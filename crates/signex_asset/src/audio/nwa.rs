@@ -27,8 +27,9 @@
 //! Decoding is a pure function of `bytes`: identical input yields
 //! identical `NwaAudio` or the same error category.
 
-use super::{AudioDecodeError as DecodeError, checked_size};
+use super::AudioDecodeError as DecodeError;
 use crate::reader::CheckedReader;
+use crate::util::checked_size;
 
 /// Raw NWA header plus the decoded unit-offset table (compressed mode only).
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,3 +1,5 @@
+use crate::DecodeError;
+
 /// Stable scene number used by ScenePack lookups.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SceneId(i32);
@@ -40,26 +42,21 @@ pub struct ScenePackHeader {
 }
 
 impl ScenePackHeader {
-    pub(crate) fn from_raw(
-        raw: [i32; 23],
-        input_len: usize,
-    ) -> Result<Self, super::super::error::DecodeError> {
-        let header_size = usize::try_from(raw[0]).map_err(|_| {
-            super::super::error::DecodeError::InvalidValue {
-                field: "Scene pack header_size",
-                offset: 0,
-                value: i64::from(raw[0]),
-            }
+    pub(crate) fn from_raw(raw: [i32; 23], input_len: usize) -> Result<Self, DecodeError> {
+        let header_size = usize::try_from(raw[0]).map_err(|_| DecodeError::InvalidValue {
+            field: "Scene pack header_size",
+            offset: 0,
+            value: i64::from(raw[0]),
         })?;
         if header_size < 92 || header_size > input_len {
-            return Err(super::super::error::DecodeError::InvalidValue {
+            return Err(DecodeError::InvalidValue {
                 field: "Scene pack header_size",
                 offset: 0,
                 value: i64::from(raw[0]),
             });
         }
         if raw[22] < 0 {
-            return Err(super::super::error::DecodeError::InvalidValue {
+            return Err(DecodeError::InvalidValue {
                 field: "Scene original_source_header_size",
                 offset: 88,
                 value: i64::from(raw[22]),
@@ -72,7 +69,7 @@ impl ScenePackHeader {
             (raw[18], raw[20], "scene data index/count", 72),
         ] {
             if index_count != name_count {
-                return Err(super::super::error::DecodeError::InvalidValue {
+                return Err(DecodeError::InvalidValue {
                     field,
                     offset,
                     value: i64::from(name_count),

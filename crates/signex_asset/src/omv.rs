@@ -4,7 +4,10 @@
 //! packet records. The stream starts after both lists. This module reads only
 //! the fixed header, so callers can seek in the original file for decoding.
 
-use crate::reader::{CheckedReader, ReadError};
+use crate::DecodeError;
+use crate::reader::CheckedReader;
+
+pub type OmvError = DecodeError;
 
 /// Fixed OMV header size in bytes.
 pub const OMV_HEADER_SIZE: usize = 168;
@@ -86,49 +89,6 @@ impl OmvContainer {
     /// Byte offset of the Ogg stream in the original OMV file.
     pub const fn data_offset(&self) -> u64 {
         self.data_offset
-    }
-}
-
-/// Errors while parsing the fixed OMV header.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-pub enum OmvError {
-    #[error(
-        "unexpected EOF while reading `{field}` at byte {offset}: needed {needed}, {remaining} remaining"
-    )]
-    UnexpectedEof {
-        field: &'static str,
-        offset: u64,
-        needed: usize,
-        remaining: usize,
-    },
-    #[error("invalid value {value} for `{field}` at byte {offset}")]
-    InvalidValue {
-        field: &'static str,
-        offset: u64,
-        value: i64,
-    },
-    #[error("arithmetic overflow in `{field}` at byte {offset}")]
-    ArithmeticOverflow { field: &'static str, offset: u64 },
-}
-
-impl From<ReadError> for OmvError {
-    fn from(error: ReadError) -> Self {
-        match error {
-            ReadError::UnexpectedEof {
-                field,
-                offset,
-                needed,
-                remaining,
-            } => Self::UnexpectedEof {
-                field,
-                offset,
-                needed,
-                remaining,
-            },
-            ReadError::ArithmeticOverflow { field, offset } => {
-                Self::ArithmeticOverflow { field, offset }
-            }
-        }
     }
 }
 

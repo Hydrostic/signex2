@@ -1,22 +1,15 @@
-use super::error::DecodeError;
 use super::keys::EASY_ANGOU;
 use super::model::{
     CommandTarget, SceneHeader, SceneId, SceneImage, ScenePack, ScenePackHeader, SceneProp,
 };
+use crate::DecodeError;
 use crate::lzss::{decode as decode_lzss, xor_cycle};
 use crate::reader::CheckedReader;
+use crate::util::{checked_count, checked_size, checked_target};
 
 pub const SCENE_PACK_HEADER_SIZE: usize = 92;
 pub const SCENE_HEADER_SIZE: usize = 132;
 pub const Z_LABEL_COUNT: usize = 1000;
-
-fn checked_count(value: i32, field: &'static str, offset: u64) -> Result<usize, DecodeError> {
-    usize::try_from(value).map_err(|_| DecodeError::InvalidValue {
-        field,
-        offset,
-        value: i64::from(value),
-    })
-}
 
 fn decode_utf16(bytes: &[u8], field: &'static str, offset: u64) -> Result<String, DecodeError> {
     if !bytes.len().is_multiple_of(2) {
@@ -117,7 +110,7 @@ pub fn decode_scene(bytes: &[u8], exe_el: Option<&[u8; 16]>) -> Result<ScenePack
         "scene data index",
         68,
     )?;
-    let data_base = nonnegative(header.scene_data_offset, "scene data list offset", 76)?;
+    let data_base = checked_count(header.scene_data_offset, "scene data list offset", 76)?;
     if data_base > bytes.len() {
         return Err(DecodeError::InvalidRange {
             field: "scene data list offset",
@@ -134,12 +127,12 @@ pub fn decode_scene(bytes: &[u8], exe_el: Option<&[u8; 16]>) -> Result<ScenePack
     );
     let mut scene_ranges = Vec::with_capacity(scn_data_count);
     for _ in 0..scn_data_count {
-        let relative = nonnegative(
+        let relative = checked_count(
             index_reader.read_i32_le()?,
             "scene data block offset",
             index_reader.offset() - 8,
         )?;
-        let size = nonnegative(
+        let size = checked_count(
             index_reader.read_i32_le()?,
             "scene data block size",
             index_reader.offset() - 4,
@@ -265,12 +258,12 @@ pub fn decode_scene(bytes: &[u8], exe_el: Option<&[u8; 16]>) -> Result<ScenePack
         let mut table =
             CheckedReader::from_slice(&bytes[inc_cmd_range.clone()], u64_of(inc_cmd_range.start));
         for _ in 0..inc_cmd_count {
-            let scn_no = nonnegative(
+            let scn_no = checked_count(
                 table.read_i32_le()?,
                 "include command scene",
                 table.offset() - 8,
             )?;
-            let offset = nonnegative(
+            let offset = checked_count(
                 table.read_i32_le()?,
                 "include command offset",
                 table.offset() - 4,
@@ -321,7 +314,7 @@ fn decode_scene_image(block: &[u8], scene: SceneId) -> Result<SceneImage, Decode
     }
 
     let header = SceneHeader::from_raw(raw_header);
-    let header_size = nonnegative(header.header_size, "scene header_size", 0)?;
+    let header_size = checked_count(header.header_size, "scene header_size", 0)?;
     if header_size < SCENE_HEADER_SIZE || header_size > block.len() {
         return Err(DecodeError::InvalidValue {
             field: "scene header_size",
@@ -366,8 +359,8 @@ fn decode_scene_image(block: &[u8], scene: SceneId) -> Result<SceneImage, Decode
     }
 
     // --- code range ---
-    let code_ofs = nonnegative(header.code_offset, "scene code offset", 4)?;
-    let code_size = nonnegative(header.code_size, "scene code size", 8)?;
+    let code_ofs = checked_count(header.code_offset, "scene code offset", 4)?;
+    let code_size = checked_count(header.code_size, "scene code size", 8)?;
     let code_end = code_ofs
         .checked_add(code_size)
         .ok_or(DecodeError::ArithmeticOverflow {
@@ -481,7 +474,7 @@ fn decode_scene_image(block: &[u8], scene: SceneId) -> Result<SceneImage, Decode
             commands.push(CommandTarget {
                 scene,
                 offset: checked_target(
-                    nonnegative(offset, "scene command offset", table.offset() - 4)?,
+                    checked_count(offset, "scene command offset", table.offset() - 4)?,
                     code.len(),
                     "scene command offset",
                     table.offset() - 4,
@@ -525,7 +518,7 @@ fn decode_scene_image(block: &[u8], scene: SceneId) -> Result<SceneImage, Decode
     )?;
     let mut namae = Vec::with_capacity(namae_values.len());
     for value in namae_values {
-        let index = nonnegative(value, "scene namae string index", 116)?;
+        let index = checked_count(value, "scene namae string index", 116)?;
         if index >= strings.len() {
             return Err(DecodeError::InvalidRange {
                 field: "scene namae string index",
@@ -589,7 +582,7 @@ fn decode_name_pool(
     }
     let count = checked_count(index_cnt, field, offset)?;
     let range = section_range(bytes, index_ofs, count, 8, field, offset)?;
-    let pool_start = nonnegative(pool_ofs, field, offset)?;
+    let pool_start = checked_count(pool_ofs, field, offset)?;
     if pool_start > bytes.len() {
         return Err(DecodeError::InvalidRange {
             field,
@@ -631,7 +624,7 @@ fn decode_strings(
 ) -> Result<Vec<String>, DecodeError> {
     let count = checked_count(index_cnt, field, offset)?;
     let range = section_range(block, index_ofs, count, 8, field, offset)?;
-    let pool_start = nonnegative(pool_ofs, field, offset)?;
+    let pool_start = checked_count(pool_ofs, field, offset)?;
     if pool_start > block.len() {
         return Err(DecodeError::InvalidRange {
             field,
@@ -674,8 +667,8 @@ fn pool_range(
     field: &'static str,
     offset: u64,
 ) -> Result<std::ops::Range<usize>, DecodeError> {
-    let units_ofs = nonnegative(units_ofs, field, offset)?;
-    let units_size = nonnegative(units_size, field, offset)?;
+    let units_ofs = checked_count(units_ofs, field, offset)?;
+    let units_size = checked_count(units_size, field, offset)?;
     let start = units_ofs
         .checked_mul(2)
         .ok_or(DecodeError::ArithmeticOverflow { field, offset })?;
@@ -754,7 +747,7 @@ fn decode_offset_table(
     let values = read_i32_table(block, ofs, cnt, field, offset)?;
     values
         .into_iter()
-        .map(|value| checked_target(nonnegative(value, field, offset)?, max, field, offset))
+        .map(|value| checked_target(checked_count(value, field, offset)?, max, field, offset))
         .collect()
 }
 
@@ -776,7 +769,7 @@ fn decode_command_labels(
         out.push((
             cmd_id,
             checked_target(
-                nonnegative(target, field, table.offset() - 4)?,
+                checked_count(target, field, table.offset() - 4)?,
                 max,
                 field,
                 table.offset() - 4,
@@ -796,10 +789,8 @@ fn section_range(
     field: &'static str,
     offset: u64,
 ) -> Result<std::ops::Range<usize>, DecodeError> {
-    let start = nonnegative(ofs, field, offset)?;
-    let length = count
-        .checked_mul(item_size)
-        .ok_or(DecodeError::ArithmeticOverflow { field, offset })?;
+    let start = checked_count(ofs, field, offset)?;
+    let length = checked_size(count, item_size, field, offset)?;
     let end = start
         .checked_add(length)
         .ok_or(DecodeError::ArithmeticOverflow { field, offset })?;
@@ -813,32 +804,6 @@ fn section_range(
         });
     }
     Ok(start..end)
-}
-
-fn nonnegative(value: i32, field: &'static str, offset: u64) -> Result<usize, DecodeError> {
-    usize::try_from(value).map_err(|_| DecodeError::InvalidValue {
-        field,
-        offset,
-        value: i64::from(value),
-    })
-}
-
-fn checked_target(
-    value: usize,
-    max: usize,
-    field: &'static str,
-    offset: u64,
-) -> Result<u32, DecodeError> {
-    if value > max {
-        return Err(DecodeError::InvalidRange {
-            field,
-            offset,
-            start: u64::try_from(value).unwrap_or(u64::MAX),
-            length: 1,
-            input_len: u64::try_from(max).unwrap_or(u64::MAX),
-        });
-    }
-    u32::try_from(value).map_err(|_| DecodeError::ArithmeticOverflow { field, offset })
 }
 
 fn u64_of(value: usize) -> u64 {

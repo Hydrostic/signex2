@@ -13,8 +13,9 @@
 //! validates `count * 16` table bytes and every entry range before exposing any
 //! substream. `smp_cnt` is informational only.
 
-use super::{AudioDecodeError as DecodeError, checked_size};
+use super::AudioDecodeError as DecodeError;
 use crate::reader::CheckedReader;
+use crate::util::checked_size;
 
 /// One 16-byte OVK voice entry.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
