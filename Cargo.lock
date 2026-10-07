@@ -163,6 +163,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "signex_resource"
+version = "0.1.0"
+dependencies = [
+ "signex_asset",
+ "signex_util",
+ "thiserror",
+]
+
+[[package]]
 name = "signex_util"
 version = "0.1.0"
 

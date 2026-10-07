@@ -1,0 +1,9 @@
+[package]
+name = "signex_resource"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+signex_asset = { path = "../signex_asset" }
+signex_util = { path = "../signex_util" }
+thiserror = "2"
